@@ -13,24 +13,23 @@ class Shape {
         this.type = type;
         this.isHole = isHole;
         this.isDragged = false;
+        this.size = 100;
     }
 
     draw() {
         ctx.beginPath();
         switch (this.type) {
             case 'circle':
-                ctx.arc(this.x, this.y, 50, 0, Math.PI * 2, false);
+                ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2, false);
                 break;
             case 'square':
-                ctx.rect(this.x - 50, this.y - 50, 100, 100);
-                break;
             case 'rectangle':
-                ctx.rect(this.x - 75, this.y - 50, 150, 100);
+                ctx.rect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
                 break;
             case 'triangle':
-                ctx.moveTo(this.x, this.y - 50);
-                ctx.lineTo(this.x - 50, this.y + 50);
-                ctx.lineTo(this.x + 50, this.y + 50);
+                ctx.moveTo(this.x, this.y - this.size / 2);
+                ctx.lineTo(this.x - this.size / 2, this.y + this.size / 2);
+                ctx.lineTo(this.x + this.size / 2, this.y + this.size / 2);
                 ctx.closePath();
                 break;
         }
@@ -56,11 +55,11 @@ let types = ['circle', 'square', 'rectangle', 'triangle'];
 function createShapesAndHoles() {
     let color = colors[Math.floor(Math.random() * colors.length)];
     let type = types[Math.floor(Math.random() * types.length)];
-    let x = Math.random() * canvas.width;
-    let y = Math.random() * canvas.height;
+    let x = Math.random() * (canvas.width - 100) + 50;
+    let y = Math.random() * (canvas.height - 100) + 50;
 
     shapes.push(new Shape(x, y, color, type));
-    holes.push(new Shape(Math.random() * canvas.width, Math.random() * canvas.height, color, type, true));
+    holes.push(new Shape(Math.random() * (canvas.width - 100) + 50, Math.random() * (canvas.height - 100) + 50, color, type, true));
 }
 
 function startDrag(e) {
@@ -70,17 +69,17 @@ function startDrag(e) {
     shapes.forEach((shape) => {
         let dx = clientX - shape.x;
         let dy = clientY - shape.y;
-        if (Math.sqrt(dx * dx + dy * dy) < 100) shape.isDragged = true;
+        if (Math.sqrt(dx * dx + dy * dy) < shape.size) shape.isDragged = true;
     });
 }
 
-function endDrag() {
+function endDrag(e) {
     shapes.forEach((shape, index) => {
         if (shape.isDragged) {
             let hole = holes[index];
             let dx = shape.x - hole.x;
             let dy = shape.y - hole.y;
-            if (Math.sqrt(dx * dx + dy * dy) < 100) {
+            if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
                 shapes.splice(index, 1);
                 holes.splice(index, 1);
                 createShapesAndHoles();
@@ -95,14 +94,15 @@ function moveDrag(e) {
     let clientY = e.clientY || e.touches[0].clientY;
 
     mousePos = { x: clientX, y: clientY };
+    e.preventDefault(); // Prevent scrolling when touching
 }
 
-canvas.addEventListener('mousedown', startDrag);
-canvas.addEventListener('mouseup', endDrag);
-canvas.addEventListener('mousemove', moveDrag);
-canvas.addEventListener('touchstart', startDrag);
-canvas.addEventListener('touchend', endDrag);
-canvas.addEventListener('touchmove', moveDrag);
+canvas.addEventListener('mousedown', startDrag, false);
+canvas.addEventListener('mouseup', endDrag, false);
+canvas.addEventListener('mousemove', moveDrag, false);
+canvas.addEventListener('touchstart', startDrag, false);
+canvas.addEventListener('touchend', endDrag, false);
+canvas.addEventListener('touchmove', moveDrag, false);
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
