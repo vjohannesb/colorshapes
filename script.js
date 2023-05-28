@@ -63,8 +63,14 @@ function createShapesAndHoles() {
 }
 
 function startDrag(e) {
-    let clientX = e.clientX || e.touches[0].clientX;
-    let clientY = e.clientY || e.touches[0].clientY;
+    let clientX, clientY;
+    if(e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
 
     shapes.forEach((shape) => {
         let dx = clientX - shape.x;
@@ -90,8 +96,14 @@ function endDrag(e) {
 }
 
 function moveDrag(e) {
-    let clientX = e.clientX || e.touches[0].clientX;
-    let clientY = e.clientY || e.touches[0].clientY;
+    let clientX, clientY;
+    if(e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
 
     mousePos = { x: clientX, y: clientY };
     e.preventDefault(); // Prevent scrolling when touching
