@@ -58,8 +58,21 @@ function createShapesAndHoles() {
     for(let i=0; i<objectCount; i++) {
         let color = colors[Math.floor(Math.random() * colors.length)];
         let type = types[Math.floor(Math.random() * types.length)];
-        let x = Math.random() * (canvas.width - 100) + 50;
-        let y = Math.random() * (canvas.height - 100) + 50;
+        let x, y;
+        let overlap;
+        do {
+            overlap = false;
+            x = Math.random() * (canvas.width - 100) + 50;
+            y = Math.random() * (canvas.height - 100) + 50;
+
+            shapes.forEach((shape) => {
+                let dx = x - shape.x;
+                let dy = y - shape.y;
+                if (Math.sqrt(dx * dx + dy * dy) < shape.size * 2) {
+                    overlap = true;
+                }
+            });
+        } while (overlap);
 
         shapes.push(new Shape(x, y, color, type));
         holes.push(new Shape(Math.random() * (canvas.width - 100) + 50, Math.random() * (canvas.height - 100) + 50, color, type, true));
@@ -95,7 +108,9 @@ function endDrag(e) {
             if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
                 shapes.splice(index, 1);
                 holes.splice(index, 1);
-                createShapesAndHoles();
+                if (shapes.length === 0) {
+                    createShapesAndHoles();
+                }
             }
         }
         shape.isDragged = false;
