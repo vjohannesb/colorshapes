@@ -1,6 +1,7 @@
 const canvas = document.querySelector('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+canvas.style.backgroundColor = 'black';
 const ctx = canvas.getContext('2d');
 
 const colors = ['red', 'blue', 'green', 'yellow', 'pink', 'purple'];
@@ -53,13 +54,16 @@ let mousePos = { x: 0, y: 0 };
 let types = ['circle', 'square', 'rectangle', 'triangle'];
 
 function createShapesAndHoles() {
-    let color = colors[Math.floor(Math.random() * colors.length)];
-    let type = types[Math.floor(Math.random() * types.length)];
-    let x = Math.random() * (canvas.width - 100) + 50;
-    let y = Math.random() * (canvas.height - 100) + 50;
+    let objectCount = Math.floor(Math.random() * 3) + 1;
+    for(let i=0; i<objectCount; i++) {
+        let color = colors[Math.floor(Math.random() * colors.length)];
+        let type = types[Math.floor(Math.random() * types.length)];
+        let x = Math.random() * (canvas.width - 100) + 50;
+        let y = Math.random() * (canvas.height - 100) + 50;
 
-    shapes.push(new Shape(x, y, color, type));
-    holes.push(new Shape(Math.random() * (canvas.width - 100) + 50, Math.random() * (canvas.height - 100) + 50, color, type, true));
+        shapes.push(new Shape(x, y, color, type));
+        holes.push(new Shape(Math.random() * (canvas.width - 100) + 50, Math.random() * (canvas.height - 100) + 50, color, type, true));
+    }
 }
 
 function startDrag(e) {
@@ -75,7 +79,10 @@ function startDrag(e) {
     shapes.forEach((shape) => {
         let dx = clientX - shape.x;
         let dy = clientY - shape.y;
-        if (Math.sqrt(dx * dx + dy * dy) < shape.size) shape.isDragged = true;
+        if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
+            shape.isDragged = true;
+            mousePos = { x: shape.x, y: shape.y }; // Initiate mousePos with shape's current position
+        }
     });
 }
 
@@ -106,7 +113,7 @@ function moveDrag(e) {
     }
 
     mousePos = { x: clientX, y: clientY };
-    e.preventDefault(); // Prevent scrolling when touching
+    e.preventDefault();
 }
 
 canvas.addEventListener('mousedown', startDrag, false);
