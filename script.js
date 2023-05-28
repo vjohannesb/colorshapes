@@ -9,7 +9,7 @@ const colors = ['red', 'blue', 'green', 'yellow', 'pink', 'purple'];
 class Shape {
     constructor(x, y, color, type, isHole = false) {
         this.x = x;
-        this.y = y;
+        this.y = y; 
         this.color = color;
         this.type = type;
         this.isHole = isHole;
