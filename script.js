@@ -6,6 +6,19 @@ const ctx = canvas.getContext('2d');
 
 const colors = ['red', 'blue', 'green', 'yellow', 'pink', 'purple'];
 
+const sounds = {
+    'red': new Audio('red.mp3'),
+    'blue': new Audio('blue.mp3'),
+    'green': new Audio('green.mp3'),
+    'yellow': new Audio('yellow.mp3'),
+    'pink': new Audio('pink.mp3'),
+    'purple': new Audio('purple.mp3'),
+    'circle': new Audio('circle.mp3'),
+    'square': new Audio('square.mp3'),
+    'rectangle': new Audio('rectangle.mp3'),
+    'triangle': new Audio('triangle.mp3')
+};
+
 class Shape {
     constructor(x, y, color, type, isHole = false) {
         this.x = x;
