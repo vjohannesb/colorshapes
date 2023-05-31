@@ -1,10 +1,10 @@
 const canvas = document.querySelector('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-canvas.style.backgroundColor = 'black';
 const ctx = canvas.getContext('2d');
 
 const colors = ['red', 'blue', 'green', 'yellow', 'pink', 'purple'];
+const types = ['circle', 'square', 'rectangle', 'triangle'];
 
 const sounds = {
     'red': new Audio('red.mp3'),
@@ -20,34 +20,35 @@ const sounds = {
 };
 
 class Shape {
-    constructor(x, y, color, type, isHole = false) {
+    constructor(x, y, color, type, size, isHole = false) {
         this.x = x;
-        this.y = y; 
+        this.y = y;
         this.color = color;
         this.type = type;
+        this.size = size;
         this.isHole = isHole;
         this.isDragged = false;
-        this.size = 100;
     }
 
     draw() {
         ctx.beginPath();
         switch (this.type) {
             case 'circle':
-                ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2, false);
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
                 break;
             case 'square':
+                ctx.rect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
+                break;
             case 'rectangle':
-                ctx.rect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+                ctx.rect(this.x - this.size, this.y - this.size / 2, this.size * 2, this.size);
                 break;
             case 'triangle':
-                ctx.moveTo(this.x, this.y - this.size / 2);
-                ctx.lineTo(this.x - this.size / 2, this.y + this.size / 2);
-                ctx.lineTo(this.x + this.size / 2, this.y + this.size / 2);
+                ctx.moveTo(this.x, this.y - this.size);
+                ctx.lineTo(this.x - this.size, this.y + this.size);
+                ctx.lineTo(this.x + this.size, this.y + this.size);
                 ctx.closePath();
                 break;
         }
-
         this.isHole ? ctx.strokeStyle = this.color : ctx.fillStyle = this.color;
         this.isHole ? ctx.stroke() : ctx.fill();
     }
@@ -59,71 +60,57 @@ class Shape {
         }
         this.draw();
     }
+
+    playShapeSound() {
+        let colorSound = sounds[this.color];
+        let shapeSound = sounds[this.type];
+
+        colorSound.currentTime = 0;
+        shapeSound.currentTime = 0;
+
+        colorSound.addEventListener('timeupdate', function() {
+            if (this.currentTime > this.duration * 0.9) {
+                shapeSound.play();
+                this.removeEventListener('timeupdate', arguments.callee);
+            }
+        });
+
+        colorSound.play();
+    }
 }
 
 let shapes = [];
 let holes = [];
 let mousePos = { x: 0, y: 0 };
-let types = ['circle', 'square', 'rectangle', 'triangle'];
 
 function createShapesAndHoles() {
-    let objectCount = Math.floor(Math.random() * 3) + 1;
-    for(let i=0; i<objectCount; i++) {
-        let color = colors[Math.floor(Math.random() * colors.length)];
-        let type = types[Math.floor(Math.random() * types.length)];
-        let x, y;
-        let overlap;
-        do {
-            overlap = false;
-            x = Math.random() * (canvas.width - 100) + 50;
-            y = Math.random() * (canvas.height - 100) + 50;
+    let size = 50;
+    let color = colors[Math.floor(Math.random() * colors.length)];
+    let type = types[Math.floor(Math.random() * types.length)];
+    let x = size + Math.random() * (canvas.width - 2 * size);
+    let y = size + Math.random() * (canvas.height - 2 * size);
 
-            shapes.forEach((shape) => {
-                let dx = x - shape.x;
-                let dy = y - shape.y;
-                if (Math.sqrt(dx * dx + dy * dy) < shape.size * 2) {
-                    overlap = true;
-                }
-            });
-        } while (overlap);
-
-        shapes.push(new Shape(x, y, color, type));
-        holes.push(new Shape(Math.random() * (canvas.width - 100) + 50, Math.random() * (canvas.height - 100) + 50, color, type, true));
-    }
+    shapes.push(new Shape(x, y, color, type, size));
+    holes.push(new Shape(size + Math.random() * (canvas.width - 2 * size), size + Math.random() * (canvas.height - 2 * size), color, type, size, true));
 }
 
 function startDrag(e) {
-    let clientX, clientY;
-    if(e.touches) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-    } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-    }
+    let clientX = e.clientX || e.touches[0].clientX;
+    let clientY = e.clientY || e.touches[0].clientY;
 
     shapes.forEach((shape) => {
         let dx = clientX - shape.x;
         let dy = clientY - shape.y;
         if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
             shape.isDragged = true;
-            mousePos = { x: shape.x, y: shape.y }; // Initiate mousePos with shape's current position
 
-            let colorSound = sounds[shape.color];
-            let shapeSound = sounds[shape.type];
-
-            colorSound.currentTime = 0; // Reset audio play time
-            shapeSound.currentTime = 0; // Reset audio play time
-
-            colorSound.addEventListener('ended', () => {
-                shapeSound.play();
-            });
-            colorSound.play(); 
+            // Play sound
+            shape.playShapeSound();
         }
     });
 }
 
-function endDrag(e) {
+function endDrag() {
     shapes.forEach((shape, index) => {
         if (shape.isDragged) {
             let hole = holes[index];
@@ -132,35 +119,23 @@ function endDrag(e) {
             if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
                 shapes.splice(index, 1);
                 holes.splice(index, 1);
-                if (shapes.length === 0) {
-                    createShapesAndHoles();
-                }
+                createShapesAndHoles();
             }
         }
         shape.isDragged = false;
     });
 }
 
-function moveDrag(e) {
-    let clientX, clientY;
-    if(e.touches) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-    } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-    }
-
-    mousePos = { x: clientX, y: clientY };
-    e.preventDefault();
+function updateMousePos(e) {
+    mousePos = { x: e.clientX, y: e.clientY };
 }
 
-canvas.addEventListener('mousedown', startDrag, false);
-canvas.addEventListener('mouseup', endDrag, false);
-canvas.addEventListener('mousemove', moveDrag, false);
-canvas.addEventListener('touchstart', startDrag, false);
-canvas.addEventListener('touchend', endDrag, false);
-canvas.addEventListener('touchmove', moveDrag, false);
+canvas.addEventListener('mousedown', startDrag);
+canvas.addEventListener('mouseup', endDrag);
+canvas.addEventListener('mousemove', updateMousePos);
+canvas.addEventListener('touchstart', startDrag, { passive: false });
+canvas.addEventListener('touchend', endDrag);
+canvas.addEventListener('touchmove', updateMousePos, { passive: false });
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
