@@ -109,12 +109,16 @@ function startDrag(e) {
             shape.isDragged = true;
             mousePos = { x: shape.x, y: shape.y }; // Initiate mousePos with shape's current position
 
-            let colorSound = new Audio(shape.color + '.mp3');
-            let shapeSound = new Audio(shape.type + '.mp3');
+            let colorSound = sounds[shape.color];
+            let shapeSound = sounds[shape.type];
+
+            colorSound.currentTime = 0; // Reset audio play time
+            shapeSound.currentTime = 0; // Reset audio play time
+
             colorSound.addEventListener('ended', () => {
                 shapeSound.play();
             });
-            colorSound.play();
+            colorSound.play(); 
         }
     });
 }
