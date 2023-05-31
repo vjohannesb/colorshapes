@@ -95,6 +95,13 @@ function startDrag(e) {
         if (Math.sqrt(dx * dx + dy * dy) < shape.size) {
             shape.isDragged = true;
             mousePos = { x: shape.x, y: shape.y }; // Initiate mousePos with shape's current position
+
+            let colorSound = new Audio(shape.color + '.mp3');
+            let shapeSound = new Audio(shape.type + '.mp3');
+            colorSound.addEventListener('ended', () => {
+                shapeSound.play();
+            });
+            colorSound.play();
         }
     });
 }
